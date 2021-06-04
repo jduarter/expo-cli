@@ -473,10 +473,12 @@ function ensureConfigHasDefaultValues({
   const expWithDefaults = { ...exp, name, slug, version, description };
 
   let sdkVersion;
-  try {
-    sdkVersion = getExpoSDKVersion(projectRoot, expWithDefaults);
-  } catch (error) {
-    if (!skipSDKVersionRequirement) throw error;
+  if (!exp.runtimeVersion) {
+    try {
+      sdkVersion = getExpoSDKVersion(projectRoot, expWithDefaults);
+    } catch (error) {
+      if (!skipSDKVersionRequirement) throw error;
+    }
   }
 
   let platforms = exp.platforms;

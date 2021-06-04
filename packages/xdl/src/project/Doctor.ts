@@ -175,6 +175,25 @@ async function _validateExpJsonAsync(
   }
   ProjectUtils.clearNotification(projectRoot, 'doctor-problem-checking-watchman-version');
 
+  if (!exp.runtimeVersion) {
+    return await _validateSdkVersionAsync(
+      exp,
+      pkg,
+      projectRoot,
+      allowNetwork,
+      skipSDKVersionRequirement
+    );
+  }
+  return NO_ISSUES;
+}
+
+async function _validateSdkVersionAsync(
+  exp: ExpoConfig,
+  pkg: PackageJSONConfig,
+  projectRoot: string,
+  allowNetwork: boolean,
+  skipSDKVersionRequirement: boolean | undefined
+) {
   const sdkVersion = exp.sdkVersion;
   const configName = configFilename(projectRoot);
 
