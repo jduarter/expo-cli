@@ -455,6 +455,7 @@ function ensureConfigHasDefaultValues({
     ...(paths ?? {}),
     packageJsonPath,
   });
+  skipSDKVersionRequirement = exp.runtimeVersion ? true : skipSDKVersionRequirement;
   // Defaults for package.json fields
   const pkgName = typeof pkg.name === 'string' ? pkg.name : path.basename(projectRoot);
   const pkgVersion = typeof pkg.version === 'string' ? pkg.version : '1.0.0';
@@ -472,14 +473,9 @@ function ensureConfigHasDefaultValues({
 
   const expWithDefaults = { ...exp, name, slug, version, description };
 
-  let sdkVersion;
-  if (!exp.runtimeVersion) {
-    try {
-      sdkVersion = getExpoSDKVersion(projectRoot, expWithDefaults);
-    } catch (error) {
-      if (!skipSDKVersionRequirement) throw error;
-    }
-  }
+  const sdkVersion = skipSDKVersionRequirement
+    ? undefined
+    : getExpoSDKVersion(projectRoot, expWithDefaults);
 
   let platforms = exp.platforms;
   if (!platforms) {
