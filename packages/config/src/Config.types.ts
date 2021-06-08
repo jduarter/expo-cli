@@ -85,6 +85,10 @@ export type ExpoAppManifestWithSdk = ExpoAppManifest & {
   sdkVersion: string;
   runtimeVersion?: undefined;
 };
+export type ExpoAppManifestWithRuntimeVersion = ExpoAppManifest & {
+  sdkVersion?: undefined;
+  runtimeVersion: string;
+};
 
 export type Hook = {
   file: string;

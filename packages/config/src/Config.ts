@@ -100,17 +100,12 @@ export function getConfig(projectRoot: string, options: GetConfigOptions = {}): 
   const [packageJson, packageJsonPath] = getPackageJsonAndPath(projectRoot);
 
   function fillAndReturnConfig(config: SplitConfigs, dynamicConfigObjectType: string | null) {
-    let { skipSDKVersionRequirement } = options;
-    if (options.isPublicConfig && !!config.expo.runtimeVersion) {
-      skipSDKVersionRequirement = true;
-    }
-
     const configWithDefaultValues = {
       ...ensureConfigHasDefaultValues({
         projectRoot,
         exp: config.expo,
         pkg: packageJson,
-        skipSDKVersionRequirement,
+        skipSDKVersionRequirement: options.skipSDKVersionRequirement,
         paths,
         packageJsonPath,
       }),
