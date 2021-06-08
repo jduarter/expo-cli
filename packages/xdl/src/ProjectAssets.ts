@@ -1,4 +1,4 @@
-import { ExpoAppManifest, ExpoConfig } from '@expo/config';
+import { ExpoAppManifest, ExpoAppManifestWithSdk, ExpoConfig } from '@expo/config';
 import { BundleAssetWithFileHashes, BundleOutput } from '@expo/dev-server';
 import assert from 'assert';
 import FormData from 'form-data';
@@ -60,7 +60,9 @@ export async function resolveGoogleServicesFile(projectRoot: string, manifest: E
  * @param manifest
  * @returns Asset fields that the user has set like ["icon", "splash.image", ...]
  */
-async function getAssetFieldPathsForManifestAsync(manifest: ExpoAppManifest): Promise<string[]> {
+async function getAssetFieldPathsForManifestAsync(
+  manifest: ExpoAppManifestWithSdk
+): Promise<string[]> {
   // String array like ["icon", "notification.icon", "loading.icon", "loading.backgroundImage", "ios.icon", ...]
   const sdkAssetFieldPaths = await ExpSchema.getAssetSchemasAsync(manifest.sdkVersion);
   return sdkAssetFieldPaths.filter(assetSchema => get(manifest, assetSchema));
@@ -73,7 +75,7 @@ export async function resolveManifestAssets({
   strict = false,
 }: {
   projectRoot: string;
-  manifest: ExpoAppManifest;
+  manifest: ExpoAppManifestWithSdk;
   resolver: (assetPath: string) => Promise<string>;
   strict?: boolean;
 }) {
@@ -334,18 +336,20 @@ async function collectAssets(
   // Resolve manifest assets to their hosted URL and add them to the list of assets to
   // be uploaded. Modifies exp.
   const manifestAssets: Asset[] = [];
-  await resolveManifestAssets({
-    projectRoot,
-    manifest: exp,
-    async resolver(assetPath) {
-      const absolutePath = path.resolve(projectRoot, assetPath);
-      const contents = await fs.readFile(absolutePath);
-      const hash = md5hex(contents);
-      manifestAssets.push({ files: [absolutePath], fileHashes: [hash], hash });
-      return urljoin(hostedAssetPrefix, hash);
-    },
-    strict: true,
-  });
+  if (exp.sdkVersion) {
+    await resolveManifestAssets({
+      projectRoot,
+      manifest: exp as ExpoAppManifestWithSdk,
+      async resolver(assetPath) {
+        const absolutePath = path.resolve(projectRoot, assetPath);
+        const contents = await fs.readFile(absolutePath);
+        const hash = md5hex(contents);
+        manifestAssets.push({ files: [absolutePath], fileHashes: [hash], hash });
+        return urljoin(hostedAssetPrefix, hash);
+      },
+      strict: true,
+    });
+  }
 
   return [...bundles.ios.assets, ...bundles.android.assets, ...manifestAssets];
 }

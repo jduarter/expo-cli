@@ -100,12 +100,17 @@ export function getConfig(projectRoot: string, options: GetConfigOptions = {}): 
   const [packageJson, packageJsonPath] = getPackageJsonAndPath(projectRoot);
 
   function fillAndReturnConfig(config: SplitConfigs, dynamicConfigObjectType: string | null) {
+    let { skipSDKVersionRequirement } = options;
+    if (options.isPublicConfig && !!config.expo.runtimeVersion) {
+      skipSDKVersionRequirement = true;
+    }
+
     const configWithDefaultValues = {
       ...ensureConfigHasDefaultValues({
         projectRoot,
         exp: config.expo,
         pkg: packageJson,
-        skipSDKVersionRequirement: options.skipSDKVersionRequirement,
+        skipSDKVersionRequirement,
         paths,
         packageJsonPath,
       }),
@@ -455,7 +460,6 @@ function ensureConfigHasDefaultValues({
     ...(paths ?? {}),
     packageJsonPath,
   });
-  skipSDKVersionRequirement = exp.runtimeVersion ? true : skipSDKVersionRequirement;
   // Defaults for package.json fields
   const pkgName = typeof pkg.name === 'string' ? pkg.name : path.basename(projectRoot);
   const pkgVersion = typeof pkg.version === 'string' ? pkg.version : '1.0.0';
@@ -473,9 +477,10 @@ function ensureConfigHasDefaultValues({
 
   const expWithDefaults = { ...exp, name, slug, version, description };
 
-  const sdkVersion = skipSDKVersionRequirement
-    ? undefined
-    : getExpoSDKVersion(projectRoot, expWithDefaults);
+  let sdkVersion;
+  if (!skipSDKVersionRequirement) {
+    sdkVersion = getExpoSDKVersion(projectRoot, expWithDefaults);
+  }
 
   let platforms = exp.platforms;
   if (!platforms) {

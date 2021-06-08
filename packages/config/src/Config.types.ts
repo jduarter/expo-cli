@@ -60,7 +60,6 @@ export type HookArguments = {
 };
 
 export type ExpoAppManifest = ExpoConfig & {
-  sdkVersion: string;
   bundledAssets?: string[];
   isKernel?: boolean;
   kernel?: { androidManifestPath?: string; iosManifestPath?: string };
@@ -80,6 +79,11 @@ export type ExpoAppManifest = ExpoConfig & {
     tool: string | null;
     projectRoot?: string;
   };
+};
+
+export type ExpoAppManifestWithSdk = ExpoAppManifest & {
+  sdkVersion: string;
+  runtimeVersion?: undefined;
 };
 
 export type Hook = {

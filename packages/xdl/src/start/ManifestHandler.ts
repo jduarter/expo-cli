@@ -1,4 +1,4 @@
-import { ExpoAppManifest, ExpoConfig, getConfig } from '@expo/config';
+import { ExpoAppManifest, ExpoAppManifestWithSdk, ExpoConfig, getConfig } from '@expo/config';
 import { JSONObject } from '@expo/json-file';
 import chalk from 'chalk';
 import express from 'express';
@@ -231,14 +231,16 @@ export async function getManifestResponseAsync({
   manifest.debuggerHost = await UrlUtils.constructDebuggerHostAsync(projectRoot, hostname);
   manifest.logUrl = await UrlUtils.constructLogUrlAsync(projectRoot, hostname);
   manifest.hostUri = await UrlUtils.constructHostUriAsync(projectRoot, hostname);
-  // Resolve all assets and set them on the manifest as URLs
-  await ProjectAssets.resolveManifestAssets({
-    projectRoot,
-    manifest: manifest as ExpoAppManifest,
-    async resolver(path) {
-      return manifest.bundleUrl!.match(/^https?:\/\/.*?\//)![0] + 'assets/' + path;
-    },
-  });
+  if (manifest.sdkVersion) {
+    // Resolve all assets and set them on the manifest as URLs
+    await ProjectAssets.resolveManifestAssets({
+      projectRoot,
+      manifest: manifest as ExpoAppManifestWithSdk,
+      async resolver(path) {
+        return manifest.bundleUrl!.match(/^https?:\/\/.*?\//)![0] + 'assets/' + path;
+      },
+    });
+  }
   // The server normally inserts this but if we're offline we'll do it here
   await ProjectAssets.resolveGoogleServicesFile(projectRoot, manifest);
 

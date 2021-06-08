@@ -34,18 +34,13 @@ export async function getPublishExpConfigAsync(
   const { hooks } = privateExp;
   const { exp, pkg } = getConfig(projectRoot, { isPublicConfig: true });
 
-  const { sdkVersion } = exp;
-
   // Only allow projects to be published with UNVERSIONED if a correct token is set in env
-  if (sdkVersion === 'UNVERSIONED' && !Env.maySkipManifestValidation()) {
+  if (exp.sdkVersion === 'UNVERSIONED' && !Env.maySkipManifestValidation()) {
     throw new XDLError('INVALID_OPTIONS', 'Cannot publish with sdkVersion UNVERSIONED.');
   }
   exp.locales = await ExponentTools.getResolvedLocalesAsync(projectRoot, exp);
   return {
-    exp: {
-      ...exp,
-      sdkVersion: sdkVersion!,
-    },
+    exp,
     pkg,
     hooks,
   };

@@ -187,7 +187,7 @@ export async function exportAppAsync(
     const androidMapPath = path.join(absoluteOutputDir, 'bundles', androidMapName);
     await Project.writeArtifactSafelyAsync(projectRoot, null, androidMapPath, androidSourceMap);
 
-    if (target === 'managed' && semver.lt(exp.sdkVersion, '40.0.0')) {
+    if (target === 'managed' && exp.sdkVersion && semver.lt(exp.sdkVersion, '40.0.0')) {
       // Remove original mapping to incorrect sourcemap paths
       // In SDK 40+ and bare projects, we no longer need to do this.
       Log.log('Configuring source maps');
