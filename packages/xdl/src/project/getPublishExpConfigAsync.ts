@@ -1,6 +1,5 @@
 import {
-  ExpoAppManifestWithRuntimeVersion,
-  ExpoAppManifestWithSdk,
+  ExpoAppManifest,
   ExpoConfig,
   getConfig,
   PackageJSONConfig,
@@ -21,7 +20,7 @@ export async function getPublishExpConfigAsync(
   projectRoot: string,
   options: Pick<PublishOptions, 'releaseChannel'>
 ): Promise<{
-  exp: ExpoAppManifestWithSdk | ExpoAppManifestWithRuntimeVersion;
+  exp: ExpoAppManifest;
   pkg: PackageJSONConfig;
   hooks: ExpoConfig['hooks'];
 }> {
@@ -36,22 +35,18 @@ export async function getPublishExpConfigAsync(
   } = getConfig(projectRoot, { skipSDKVersionRequirement: true });
   const { exp, pkg } = getConfig(projectRoot, {
     isPublicConfig: true,
+    // enforce sdk validation if user is not using runtimeVersion
     skipSDKVersionRequirement: !!runtimeVersion,
   });
 
-  // we can't publish with both sdkVersion and runtimeVerson specified, so ensure we pick one or the other.
-  const xorExp = runtimeVersion
-    ? ({ ...exp, sdkVersion: undefined } as ExpoAppManifestWithRuntimeVersion)
-    : (exp as ExpoAppManifestWithSdk);
-
   // Only allow projects to be published with UNVERSIONED if a correct token is set in env
-  if (xorExp.sdkVersion === 'UNVERSIONED' && !Env.maySkipManifestValidation()) {
+  if (exp.sdkVersion === 'UNVERSIONED' && !Env.maySkipManifestValidation()) {
     throw new XDLError('INVALID_OPTIONS', 'Cannot publish with sdkVersion UNVERSIONED.');
   }
 
-  xorExp.locales = await ExponentTools.getResolvedLocalesAsync(projectRoot, xorExp);
+  exp.locales = await ExponentTools.getResolvedLocalesAsync(projectRoot, exp);
   return {
-    exp: xorExp,
+    exp,
     pkg,
     hooks,
   };
